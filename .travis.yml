@@ -34,4 +34,4 @@ before_install:
   - java -version
 
 script:
-  - ./gradlew --continue check javadoc
+  - ./gradlew --continue clean build -Pjava7CompilerOverride=8 -PfreemarkerDefaultJavaVersion=8 -PsignPublication=false

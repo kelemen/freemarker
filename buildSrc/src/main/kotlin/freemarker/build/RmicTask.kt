@@ -20,7 +20,6 @@
 package freemarker.build
 
 import java.nio.file.Files
-import java.nio.file.Path
 import javax.inject.Inject
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
@@ -79,8 +78,7 @@ open class RmicTask @Inject constructor(
 
         val classesDir = rmiInputClasses
             .find { candidateDir ->
-                val candidatePackageDir =
-                    rmicRelSrcPath.fold<String, Path>(candidateDir.toPath()) { parent, child -> parent.resolve(child) }
+                val candidatePackageDir = candidateDir.toPath().withChildren(rmicRelSrcPath)
                 if (Files.isDirectory(candidatePackageDir)) {
                     Files.newDirectoryStream(candidatePackageDir, rmicSrcPattern).use { files ->
                         val firstFile = files.first { Files.isRegularFile(it) }
