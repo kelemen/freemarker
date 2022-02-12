@@ -17,6 +17,6 @@
  * under the License.
  */
 
-rootProject.name = "freemarker"
+rootProject.name = "freemarker-buildSrc"
 
-apply(from = rootDir.toPath().resolve("gradle").resolve("repositories.gradle.kts"))
+apply(from = rootDir.toPath().parent.resolve("gradle").resolve("repositories.gradle.kts"))
