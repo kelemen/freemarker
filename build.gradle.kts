@@ -127,10 +127,12 @@ configurations {
 
 // This source set is only needed, because the OSGI plugin supports only a single sourceSet.
 // We are deleting it, because otherwise it would fool IDEs that a source root has multiple owners.
+val otherSourceSetsRef = fmExt
+    .allConfiguredSourceSetNames
+    .map { names -> names.map { name -> sourceSets.named(name).get() } }
 val osgiSourceSet = sourceSets
     .create("osgi") {
-        val otherSourceSets = fmExt.allConfiguredSourceSetNames.get().map { name -> sourceSets.named(name).get() }
-
+        val otherSourceSets = otherSourceSetsRef.get()
         java.setSrcDirs(otherSourceSets.flatMap { s -> s.java.srcDirs })
         resources.setSrcDirs(otherSourceSets.flatMap { s -> s.resources.srcDirs })
     }
@@ -139,7 +141,13 @@ val osgiSourceSet = sourceSets
         compileClasspath = osgiClasspath
         runtimeClasspath = osgiClasspath
     }
-    .also { sourceSets.remove(it) }
+    .also {
+        sourceSets.remove(it)
+        tasks.named(it.classesTaskName).configure {
+            description = "Do not run this task! This task exists only as a work around for the OSGI plugin."
+            enabled = false
+        }
+    }
 
 tasks.named<Jar>(JavaPlugin.JAR_TASK_NAME) {
     from(rmic.flatMap{ it.destinationDirectory })
@@ -148,6 +156,12 @@ tasks.named<Jar>(JavaPlugin.JAR_TASK_NAME) {
         bndfile.set(file("osgi.bnd"))
 
         setSourceSet(osgiSourceSet)
+        val otherSourceSets = otherSourceSetsRef
+            .get()
+            .flatMap { sourceSet -> sourceSet.output.files }
+            .toSet()
+
+        classpath(osgiSourceSet.compileClasspath.filter { file -> file !in otherSourceSets })
         properties.putAll(fmExt.versionDef.versionProperties)
         properties.put("moduleOrg", project.group.toString())
         properties.put("moduleName", project.name)
