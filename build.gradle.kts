@@ -26,6 +26,7 @@ plugins {
     `maven-publish`
     signing
     id("biz.aQute.bnd.builder") version "6.1.0"
+    id("eclipse")
 }
 
 group = "org.freemarker"
@@ -476,6 +477,19 @@ fun registerDistRatTask(taskName: String, excludeFile: File, srcArchiveTaskRef: 
 
 registerDistRatTask("ratDistBin", file("src/dist/bin/rat-excludes"), distBin)
 registerDistRatTask("ratDistSrc", file("rat-excludes"), distSrc)
+
+eclipse {
+    classpath {
+        // Eclipse sees only a single classpath,
+        // so make a best effort for a combined classpath.
+        plusConfigurations = listOf(
+            configurations["combinedClasspath"],
+            configurations["core8CompileClasspath"],
+            configurations["testUtilsCompileClasspath"],
+            configurations["jsp21TestCompileClasspath"]
+        )
+    }
+}
 
 val slf4jVersion = "1.6.1"
 val jettyVersion = "7.6.21.v20160908"
